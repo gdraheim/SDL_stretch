@@ -1,0 +1,295 @@
+# Makefile.in generated automatically by automake 1.5 from Makefile.am.
+
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
+# Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+@SET_MAKE@
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+includedir = @includedir@
+oldincludedir = /usr/include
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+INSTALL_HEADER = $(INSTALL_DATA)
+transform = @program_transform_name@
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+AMTAR = @AMTAR@
+AS = @AS@
+AWK = @AWK@
+CC = @CC@
+DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
+ECHO = @ECHO@
+EXEEXT = @EXEEXT@
+INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
+LTREL = @LTREL@
+LTVER = @LTVER@
+MAINT = @MAINT@
+MAJOR = @MAJOR@
+MICRO = @MICRO@
+MINOR = @MINOR@
+OBJDUMP = @OBJDUMP@
+OBJEXT = @OBJEXT@
+PACKAGE = @PACKAGE@
+PATCH = @PATCH@
+PKG_CONFIG = @PKG_CONFIG@
+PYTHON = @PYTHON@
+RANLIB = @RANLIB@
+SDL_CFLAGS = @SDL_CFLAGS@
+SDL_CONFIG = @SDL_CONFIG@
+SDL_LIBS = @SDL_LIBS@
+STRIP = @STRIP@
+VERSION = @VERSION@
+XMLTO = @XMLTO@
+am__include = @am__include@
+am__quote = @am__quote@
+install_sh = @install_sh@
+pkgconfig_libdir = @pkgconfig_libdir@
+pkgconfig_libfile = @pkgconfig_libfile@
+
+mandir = $(datadir)/man
+
+EXTRA_DIST = make-doc.py index.htm
+
+docdir = $(datadir)/groups/s/sd/sdl-stretch/htdocs
+subdir = doc
+mkinstalldirs = $(SHELL) $(top_srcdir)/use/mkinstalldirs
+CONFIG_HEADER = $(top_builddir)/config.h
+CONFIG_CLEAN_FILES =
+DIST_SOURCES =
+DIST_COMMON = Makefile.am Makefile.in
+all: all-am
+
+.SUFFIXES:
+
+mostlyclean-libtool:
+	-rm -f *.lo
+
+clean-libtool:
+	-rm -rf .libs _libs
+
+distclean-libtool:
+	-rm -f libtool
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ Makefile.am  $(top_srcdir)/configure.ac $(ACLOCAL_M4)
+	cd $(top_srcdir) && \
+	  $(AUTOMAKE) --gnu  doc/Makefile
+Makefile: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) && \
+	  CONFIG_HEADERS= CONFIG_LINKS= \
+	  CONFIG_FILES=$(subdir)/$@ $(SHELL) ./config.status
+uninstall-info-am:
+tags: TAGS
+TAGS:
+
+
+DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+
+top_distdir = ..
+distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  if test -f $$file; then d=.; else d=$(srcdir); fi; \
+	  dir=`echo "$$file" | sed -e 's,/[^/]*$$,,'`; \
+	  if test "$$dir" != "$$file" && test "$$dir" != "."; then \
+	    $(mkinstalldirs) "$(distdir)/$$dir"; \
+	  fi; \
+	  if test -d $$d/$$file; then \
+	    cp -pR $$d/$$file $(distdir) \
+	    || exit 1; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || cp -p $$d/$$file $(distdir)/$$file \
+	    || exit 1; \
+	  fi; \
+	done
+check-am: all-am
+check: check-am
+all-am: Makefile
+
+installdirs:
+
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+
+installcheck: installcheck-am
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
+	  `test -z '$(STRIP)' || \
+	    echo "INSTALL_PROGRAM_ENV=STRIPPROG='$(STRIP)'"` install
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES) stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+	@echo "This command is intended for maintainers to use"
+	@echo "it deletes files that may require special tools to rebuild."
+clean: clean-am
+
+clean-am: clean-generic clean-libtool mostlyclean-am
+
+distclean: distclean-am
+
+distclean-am: clean-am distclean-generic distclean-libtool
+
+dvi: dvi-am
+
+dvi-am:
+
+info: info-am
+
+info-am:
+
+install-data-am:
+
+install-exec-am:
+
+install-info: install-info-am
+
+install-man:
+
+installcheck-am:
+
+maintainer-clean: maintainer-clean-am
+
+maintainer-clean-am: distclean-am maintainer-clean-generic
+
+mostlyclean: mostlyclean-am
+
+mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+
+uninstall-am: uninstall-info-am
+
+.PHONY: all all-am check check-am clean clean-generic clean-libtool \
+	distclean distclean-generic distclean-libtool distdir dvi \
+	dvi-am info info-am install install-am install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool uninstall uninstall-am uninstall-info-am
+
+
+docs: manpages.ar htmpages.ar
+
+$(PACKAGE).spec : @top_srcdir@/$(PACKAGE).spec
+	- $(LN_S) $< $@
+
+$(PACKAGE)1.html : $(PACKAGE)1.xml
+$(PACKAGE)1.xml : $(PACKAGE).spec @srcdir@/Makefile.am @srcdir@/make-doc.py \
+                   $(srcdir)/make-doc.py @top_srcdir@/*.h
+	- @PYTHON@ $(srcdir)/make-doc.py @top_srcdir@/*.h suffix=1 
+	- test -f $(PACKAGE)1.docbook && mv $(PACKAGE)1.docbook $@ ; test -s $@
+
+$(PACKAGE).xml : $(PACKAGE)1.xml
+	test -s "$<" && cp "$<" "$@"
+
+manpages.ar : $(PACKAGE).xml
+	@ if test "$(XMLTO)" = ":" \
+	; then echo no xmlto found - could not regenerate "$@" - skipped \
+	; echo just touching the output file "$@" ; touch "$@" \
+	; else echo going to regenerate "$@" in subdir "'"man"'" \
+	; echo 'test ! -d man || rm man/* ; test -d man || mkdir man' \
+	;       test ! -d man || rm man/* ; test -d man || mkdir man  \
+	; echo '(cd man && xmlto man ../$(PACKAGE).xml)' \
+	;       (cd man && xmlto man ../$(PACKAGE).xml)  \
+	; echo 'test ! -f $@ || mv $@ $@.old' \
+	;       test ! -f $@ || mv $@ $@.old  \
+	; echo '(cd man && ar qc ../$@ *.3)' \
+	;       (cd man && ar qc ../$@ *.3)  \
+	; echo '(rm man/*.3 ; rmdir man)' \
+	;       (rm man/*.3 ; rmdir man)  \
+	; fi ; test -s $@ || mv $@.old $@ \
+        || mv $(srcdir)/$@.old $@ || test -s $@.old >$@
+
+htmpages.ar : $(PACKAGE).xml
+	@ if test "$(XMLTO)" = ":" \
+	; then echo no xmlto found - could not regenerate "$@" - skipped \
+	; echo just touching the output file "$@" ; touch "$@" \
+	; else echo going to regenerate "$@" in subdir "'"man"'" \
+	; echo 'test ! -d man || rm /* ; test -d man || mkdir man' \
+	;       test ! -d man || rm man/* ; test -d man || mkdir man  \
+	; echo '(cd man && xmlto html ../$(PACKAGE).xml | tee written.lst)' \
+	;       (cd man && xmlto html ../$(PACKAGE).xml | tee written.lst)  \
+	; echo 'test ! -f $@ || mv $@ $@.old' \
+	;       test ! -f $@ || mv $@ $@.old  \
+	; echo '(cd man && ar qc ../$@ *.*)' \
+	;       (cd man && ar qc ../$@ *.*)  \
+	; echo '(rm man/*.* ; rmdir man)' \
+	;       (rm man/*.* ; rmdir man)  \
+	; fi ; test -s $@ || mv $@.old $@ \
+        || mv $(srcdir)/$@.old $@ || test -s $@.old >$@
+install-man3 : manpages.ar
+	$(mkinstalldirs) $(DESTDIR)$(mandir)/man3
+	P=`pwd` ; cd $(DESTDIR)$(mandir)/man3 \
+        && ar x $$P/manpages.ar && chmod 664 *
+install-htm : htmpages.ar index.html
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/man3
+	P=`pwd` ; cd $(DESTDIR)$(docdir)/man3 \
+        && ar x $$P/htmpages.ar && chmod 664 *
+	cp index.html $(DESTDIR)$(docdir)
+
+index.html : Makefile index.htm
+	sed -e 's/<!--VERSION-->/$(VERSION)/' index.htm > $@
+
+install-docs : install-man3 install-htm
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:
