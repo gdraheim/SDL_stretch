@@ -600,12 +600,12 @@ class RefPage:
             return page.refmeta
         if page.manvolnum and page.refentrytitle:
             return (
-                "\n <manvolnum>"+page.manvolnum+"</manvolnum>"+
-                "\n <refentrytitle>"+page.refentrytitle+"</refentrytitle>")
+                "\n <refentrytitle>"+page.refentrytitle+"</refentrytitle>"+
+                "\n <manvolnum>"+page.manvolnum+"</manvolnum>")
         if page.manvolnum and page.func.name:
             return (
-                "\n <manvolnum>"+page.manvolnum+"</manvolnum>"+
-                "\n <refentrytitle>"+page.func.name+"</refentrytitle>")
+                "\n <refentrytitle>"+page.func.name+"</refentrytitle>"+
+                "\n <manvolnum>"+page.manvolnum+"</manvolnum>")
         return ""
     def refnamediv_text(page):
         """ the manvol formatter prints a header line with a <refpurpose> line
@@ -615,12 +615,13 @@ class RefPage:
         if page.refnamediv:
             return page.refnamediv
         if page.refpurpose and page.refname:
-            return ("\n <refpurpose>"+page.refpurpose+" </refpurpose>"+
-                    "\n <refname>"+page.refname+'</refname>')
+            return ("\n <refname>"+page.refname+'</refname>'+
+                    "\n <refpurpose>"+page.refpurpose+" </refpurpose>")
         if page.refpurpose and page.refname_list:
-            T = "\n <refpurpose>"+page.refpurpose+" </refpurpose>"
+            T = ""
             for refname in page.refname_list:
                 T += "\n <refname>"+refname+'</refname>'
+            T += "\n <refpurpose>"+page.refpurpose+" </refpurpose>"
             return T
         return ""
     def funcsynopsisdiv_text(page):
@@ -628,24 +629,20 @@ class RefPage:
             and the reference page description blocks """
         T=""
         if page.funcsynopsis:
+            T += "\n<funcsynopsis>"
             if page.funcsynopsisinfo:
                 T += "\n<funcsynopsisinfo>"+    page.funcsynopsisinfo + \
                      "\n</funcsynopsisinfo>\n"
-            T += "\n<funcsynopsis>" +           page.funcsynopsis + \
+            T += page.funcsynopsis + \
                  "\n</funcsynopsis>\n"
         if page.funcsynopsis_list:
+            T += "\n<funcsynopsis>"
             if page.funcsynopsisinfo:
                 T += "\n<funcsynopsisinfo>"+    page.funcsynopsisinfo + \
                      "\n</funcsynopsisinfo>\n"
-            if 0: # is this one right?
-                for funcsynopsis in page.funcsynopsis_list:
-                    T += "\n<funcsynopsis>" +            funcsynopsis + \
-                         "\n</funcsynopsis>\n"
-            else: # this one is what is used up to now:
-                T += "\n<funcsynopsis>"
-                for funcsynopsis in page.funcsynopsis_list:
-                    T += funcsynopsis
-                T += "\n</funcsynopsis>\n"
+            for funcsynopsis in page.funcsynopsis_list:
+                T += funcsynopsis
+            T += "\n</funcsynopsis>\n"
         #fi
         return T
     def description_text(page):
@@ -959,8 +956,9 @@ def docbook_refpages_perheader(page_list): # headerlist
             if found:
                 header[file].description = found.group(1)
             elif not header[file].description:
-                header[file].description = (page.refentry_productname + 
-                                           " library")
+                header[file].description = ( "<para>"+
+                                             page.refentry_productname + 
+                                             " library"+"</para>")
             #fi
         #fi
     #od

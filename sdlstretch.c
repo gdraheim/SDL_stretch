@@ -189,7 +189,7 @@ static int blit(int dst_row, int src_row,
 		    push esi ;
 		    mov edi, dstp ;
 		    mov esi, srcp ;
-		    call dword ptr code ;
+		    call dword ptr SDL_TheRowStretchCode ;
 		    pop esi ;
 		    pop edi ;
 		}

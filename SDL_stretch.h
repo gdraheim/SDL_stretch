@@ -27,15 +27,39 @@
 #include <SDL/SDL_video.h>
 #endif
 
-/**
+/** Perform a stretch blit between two surfaces of the same format.
+ *  NOTE:  This function is not safe to call from multiple threads!
+ *
+ * This function will stretch a srcrect smoothly to the full area of
+ * the dst surface. If no srcrect is given then the full area of the
+ * src surface is stretched smoothly to the full dst surface. The
+ * dstrect is ignored always.
+ *
+ * This function will also watch for a clip rectangle on the src
+ * surface. This may speed up handling in your programs by creating
+ * a larger src surface with an associated viewframe, and the srcrect
+ * argument needs not be recomputed.
  */
 extern int SDL_StretchSurfaceRect(SDL_Surface *src, SDL_Rect *srcrect,
 				  SDL_Surface *dst, SDL_Rect *dstrect);
-/**
+/** Perform a stretch blit between two surfaces of the same format.
+ *  NOTE:  This function is not safe to call from multiple threads!
+ *
+ * This function will stretch a srcrect smoothly to the full area of
+ * the dst surface. If no srcrect is given then the full area of the
+ * src surface is stretched smoothly to the full dst surface. The
+ * dstrect is ignored always.
+ *
+ * Remember that this is the inverse meaning, the main SDL lib will
+ * ignore the srcrect and only watch for the dstrect if any.
  */
 extern int SDL_StretchSurfaceBlit(SDL_Surface *src, SDL_Rect *srcrect,
 				  SDL_Surface *dst, SDL_Rect *dstrect);
 /**
+ *  This function will stretch to 150%. This is not only a fast function
+ *  but it is also safe to call from multiple threads. If the srcrect
+ *  is given then only that rect is copied. Otherwise the full src 
+ *  surface is copied to the full dst surface. The dstrect is ignored.
  */
 extern int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 				 SDL_Surface *dst, SDL_Rect *dstrect);

@@ -10,7 +10,7 @@ AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
 test ".$CFLAGS" = "." && CFLAGS="" 
 AC_PROG_CC
 test ".$CFLAGS" = "." && test "$GCC" = "yes" && CFLAGS="-O3"
-AC_PATH_PROG(PYTHON,python2.2 python,:)
+AC_PATH_PROG(PYTHON, python2.3 python2.2 python ,:)
 AC_PATH_PROG(XMLTO,xmlto,:)
 AC_PROG_INSTALL
 AC_LIBTOOL_WIN32_DLL
