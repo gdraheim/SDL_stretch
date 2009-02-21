@@ -1,16 +1,16 @@
 AC_INIT(SDL_stretch.spec)
 AC_PREREQ(2.49)
-AC_COPYRIGHT([Guido Draheim <guido@gmx.de> for SDL-stretch.SF.net])
+AC_COPYRIGHT([Guido U. Draheim <guido@gmx.de> for SDL-stretch.SF.net])
 AC_REVISION($Revision: 0.0$)
 AC_CONFIG_AUX_DIR(use)
 AC_CANONICAL_SYSTEM
 AC_SET_DEFAULT_PATHS_SYSTEM
 AX_SPEC_DEFAULTS
 AM_INIT_AUTOMAKE($PACKAGE,$VERSION)
-test ".$CFLAGS" = "." && CFLAGS="" 
+test ".$CFLAGS" = "." && CFLAGS=""
 AC_PROG_CC
 test ".$CFLAGS" = "." && test "$GCC" = "yes" && CFLAGS="-O3"
-AC_PATH_PROG(PYTHON, python2.3 python2.2 python ,:)
+AC_PATH_PROG(PYTHON, python ,:)
 AC_PATH_PROG(XMLTO,xmlto,:)
 AC_PROG_INSTALL
 AC_LIBTOOL_WIN32_DLL

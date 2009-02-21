@@ -201,9 +201,9 @@ class InputFiles:
 
 def scan_options (options, list):
     def encode(text):
-        return s(s(text, r"¬",  r"&#AC;"), r"\*/",r"¬")
+        return s(s(text, "\a",  r"&#07;"), r"\*/","\a")
     def decode(text):
-        return s(text, r"¬", r"*/")
+        return s(text, "\a", r"*/")
 
     for name in options:
         found = m(name, r"^(\w+)=(.*)")
@@ -221,14 +221,14 @@ def scan_options (options, list):
         text = encode (cdata1 (text))
 
         file = list.new_File(name)
-        
+
         # cut per-function comment block
-        text = s(text, r"(?x) [/][*][*](?=\s) ([^¬]+) ¬ ([^\{\}\;\#]+) [\{\;]",
+        text = s(text, r"(?x) [/][*][*](?=\s)" "([^\a]+) \a" r"([^\{\}\;\#]+) [\{\;]",
                  lambda x : list.add_function_declaration(
             decode(x.group(1)), decode(x.group(2))))
 
         # cut per-file comment block
-        found = m(text, r"(?sx)  [/][*]+(?=\s) ([^¬]+) ¬ "
+        found = m(text, r"(?sx)  [/][*]+(?=\s)" "([^\a]+) \a "
                   r"(\s*\#include\s*<[^<>]*>(?:\s*//[^\n]*)?)")
         if found:
             file.comment = decode(found.group(1))
@@ -236,7 +236,7 @@ def scan_options (options, list):
         else:
             file.comment = None
             file.include = None
-            found = m(text, r"(?sx)  ^ [/][*]+(?=\s) ([^¬]+) ¬ ")
+            found = m(text, r"(?sx)  ^ [/][*]+(?=\s)" "([^\a]+) \a ")
             if found:
                 file.comment = decode(found.group(1))
         #fi
@@ -261,7 +261,7 @@ def all_files_comment2section(list):
     for file in list:
         if file.comment is None: continue
         file.section = file_comment2section(file.comment)
-    
+
         file.section = s(
             file.section, r"(?sx) \b[Aa]uthor\s*:(.*</email>) ", lambda x
             : "<author>" + file.set_author(x.group(1)) + "</author>")
@@ -313,7 +313,7 @@ class Function:
 # (a) cut prototype into prespec/namespec/callspec
 # (b) cut out first line of comment as headline information
 # (c) sanitize rest of comment block into proper docbook formatted .body
-# 
+#
 # do this while copying strings from all.funcs to function_list
 # and remember the original order in name_list
 
@@ -356,12 +356,12 @@ def parse_all_functions(func_list): # list of FunctionDeclarations
 function_list = parse_all_functions(all.funcs)
 
 def examine_head_anchors(func_list):
-    """ .into tells later steps which func-name is the leader of a man 
+    """ .into tells later steps which func-name is the leader of a man
         page and that this func should add its descriptions over there. """
     for function in func_list:
         function.into = None
         function.seealso = None
-        
+
         found = m(function.head, r"(?sx) ^ \s* <link>(\w[\w.]*\w)<\/link>")
         # if found and found.group(1) in func_list.names:
         if found and found.group(1):
@@ -429,12 +429,12 @@ def ensure_name(text, name):
 def combined_html_pages(func_list):
     """ and now add descriptions of non-leader entries (html-mode) """
     combined = {}
-    
+
     for func in func_list: # assemble leader pages
         if func.into is not None: continue
         combined[func.name] =  HtmlFunctionFamily(func)
 
-    for func in func_list: 
+    for func in func_list:
         if func.into is None: continue
         if func.into not in combined :
             warn(#......... (combine_html_pages) ..............
@@ -585,12 +585,12 @@ class RefPage:
         if page.refentry_date and \
            page.refentry_productname and \
            page.refentry_title: return (
-            "\n <date>"+page.refentry_date+"</date>"+ 
+            "\n <date>"+page.refentry_date+"</date>"+
             "\n <productname>"+page.refentry_productname+"</productname>"+
             "\n <title>"+page.refentry_title+"</title>")
         if page.refentry_date and \
            page.refentry_productname: return (
-            "\n <date>"+page.refentry_date+"</date>"+ 
+            "\n <date>"+page.refentry_date+"</date>"+
             "\n <productname>"+page.refentry_productname+"</productname>")
         return ""
     def refmeta_text(page):
@@ -710,17 +710,17 @@ class RefPage:
             T = '<refentry id="'+id+'">'
         else:
             T = '<refentry>' # this is an error
-           
+
         if page.refentryinfo_text():
             T += "\n<refentryinfo>"+       page.refentryinfo_text()+ \
                  "\n</refentryinfo>\n"
         if page.refmeta_text():
             T += "\n<refmeta>"+            page.refmeta_text() + \
-                 "\n</refmeta>\n" 
+                 "\n</refmeta>\n"
         if page.refnamediv_text():
             T += "\n<refnamediv>"+         page.refnamediv_text() + \
                  "\n</refnamediv>\n"
-        if page.funcsynopsisdiv_text():     
+        if page.funcsynopsisdiv_text():
             T += "\n<refsynopsisdiv>\n"+   page.funcsynopsisdiv_text()+ \
                  "\n</refsynopsisdiv>\n"
         if page.description_text():
@@ -788,7 +788,7 @@ class FunctionRefPage(RefPage):
     def __init__(page,func):
         RefPage.__init__(page, func)
         FunctionRefPage.reinit(page)
-    
+
 def refpage_list_from_function_list(funclist):
     list = []
     mapp = {}
@@ -807,7 +807,7 @@ def refpage_list_from_function_list(funclist):
         list.append(FunctionRefPage(func))
     return list
 #fu
-    
+
 # ordered list of pages
 refpage_list = refpage_list_from_function_list(function_list)
 
@@ -957,7 +957,7 @@ def docbook_refpages_perheader(page_list): # headerlist
                 header[file].description = found.group(1)
             elif not header[file].description:
                 header[file].description = ( "<para>"+
-                                             page.refentry_productname + 
+                                             page.refentry_productname +
                                              " library"+"</para>")
             #fi
         #fi

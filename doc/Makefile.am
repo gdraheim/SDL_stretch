@@ -16,6 +16,8 @@ $(PACKAGE)1.xml : $(PACKAGE).spec @srcdir@/Makefile.am @srcdir@/make-doc.py \
 
 $(PACKAGE).xml : $(PACKAGE)1.xml
 	test -s "$<" && cp "$<" "$@"
+$(PACKAGE).html : $(PACKAGE)1.html
+	test -s "$<" && cp "$<" "$@"
 
 manpages.ar : $(PACKAGE).xml
 	@ if test "$(XMLTO)" = ":" \
@@ -57,16 +59,28 @@ mandir = $(datadir)/man
 install-man3 : manpages.ar
 	$(mkinstalldirs) $(DESTDIR)$(mandir)/man3
 	P=`pwd` ; cd $(DESTDIR)$(mandir)/man3 \
-        && ar x $$P/manpages.ar && chmod 664 *
+        && ar x $$P/manpages.ar
+	- cd $(DESTDIR)$(mandir)/man3 && chmod 664 * 
 
-docdir = $(datadir)/groups/s/sd/sdl-stretch/htdocs
-install-htm : htmpages.ar index.html
-	$(mkinstalldirs) $(DESTDIR)$(docdir)/man3
-	P=`pwd` ; cd $(DESTDIR)$(docdir)/man3 \
+docdir = $(datadir)/doc/$(PACKAGE)
+install-htm : htmpages.ar index.html $(PACKAGE).html
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/man
+	P=`pwd` ; cd $(DESTDIR)$(docdir)/man \
         && ar x $$P/htmpages.ar && chmod 664 *
-	cp index.html $(DESTDIR)$(docdir)
+	cp $(PACKAGE).html $(DESTDIR)$(docdir)/sdlstretch.html
+	cp index.html $(DESTDIR)$(docdir)/index.html
 
 index.html : Makefile index.htm
-	sed -e 's/<!--VERSION-->/$(VERSION)/' index.htm > $@
+	sed -e 's/<!--VERSION-->/$(VERSION)/' $(srcdir)/index.htm > $@
 
 install-docs : install-man3 install-htm
+
+upload www: htmpages.ar	index.html $(PACKAGE).html
+	test -d htdocs && rm -r htdocs ; mkdir htdocs ; mkdir htdocs/man
+	P=`pwd` ; cd htdocs/man && ar x $$P/htmpages.ar
+	- cd htdocs/man && chmod 664 * 
+	cp $(PACKAGE).html htdocs/sdlstretch.html
+	cp index.html htdocs/index.html
+	scp -r htdocs $$LOGNAME,sdl-stretch@web.sf.net:
+	rm -r htdocs
+	

@@ -29,6 +29,7 @@ static char rcsid =
 #include "SDL/SDL_error.h"
 #include "SDL/SDL_video.h"
 #include "SDL_stretch.h"
+#include "SDL_stretchasm.h"
 
 #if 0
 /* the first part is for documentation only */
@@ -44,7 +45,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Rect rect;
     SDL_Rect clip;
     const unsigned bpp = src->format->BytesPerPixel;
-    
+
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
 	SDL_SetError("Only works with same format surfaces");
 	return(-1);
@@ -60,7 +61,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	clip.x = clip.y = 0; clip.h = src->h; clip.w = src->w;
 #else   /* otherwise we test with the clprect as well */
 	clip = src->clip_rect;
-	
+
 	if (rect.x > clip.x + clip.w ||
 	    rect.x + rect.w < clip.x ||
 	    rect.y > clip.y + clip.h ||
@@ -73,7 +74,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    rect.h = clip.y + clip.h - rect.y;
 #endif
 	if (! rect.h || !rect.w) return 1;
-    } else 
+    } else
     { /* in the default however, we use srcrect == cliprect == src-screen */
 	rect.x = 0;
 	rect.y = 0;
@@ -117,7 +118,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    rect.h = (dst->clip_rect.y + dst->clip_rect.h - dest_y) / 3;
 	    dest_h = rect.h * 3; rect.h *= 2; }
 	if (!dest_h || !dest_w || !rect.h || !rect.w) return 1;
-	
+
 	if (dstrect) {                  /* inform the caller of the     */
 	    dstrect->y = dest_y;        /* computed results - if the    */
 	    dstrect->x = dest_x;        /* "dst" surface is actually    */
@@ -126,11 +127,11 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	}
 
 	/* these computations happen to be the same for all bitdepths */
-	dstp.b = (Uint8*)dst->pixels + 
+	dstp.b = (Uint8*)dst->pixels +
 	    (dst->pitch*dest_y) + (bpp*dest_x);
-	srcp.b = (Uint8*)src->pixels + 
+	srcp.b = (Uint8*)src->pixels +
 	    (src->pitch*rect.y) + (bpp*rect.x);
-	endp.b = srcp.b + 
+	endp.b = srcp.b +
 	    src->pitch*rect.h;
 	srci = src->pitch - (bpp*rect.w);
 	dsti = dst->pitch - (bpp*dest_w);
@@ -195,7 +196,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 /* the second part shows a nice optimization:
  *
  *  we keep the rect.w and rect.h at halfsize - consequently,
- *  dest.w == 3 * rect.w and dest.h == 3 * src.w always - the 
+ *  dest.w == 3 * rect.w and dest.h == 3 * src.w always - the
  *  copy-loops go in two src-lines -> three dst-lines anyway.
  *
  * and it does the fix the wrong behavior of the previous one,
@@ -219,7 +220,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Rect rect;
     SDL_Rect clip;
     const unsigned bpp = src->format->BytesPerPixel;
-    
+
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
 	SDL_SetError("Only works with same format surfaces");
 	return(-1);
@@ -232,7 +233,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	clip.x = clip.y = 0; clip.h = src->h; clip.w = src->w;
 #else
 	clip = src->clip_rect;
-	
+
 	if (rect.x > clip.x + clip.w ||
 	    rect.x + rect.w < clip.x ||
 	    rect.y > clip.y + clip.h ||
@@ -245,9 +246,9 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    rect.h = clip.y + clip.h - rect.y;
 #endif
 	if (! rect.h || !rect.w) return 1;
-	rect.x /= 2;     rect.w /= 2;    
+	rect.x /= 2;     rect.w /= 2;
 	rect.y /= 2;     rect.h /= 2;
-	clip.x /= 2;     clip.w /= 2;    
+	clip.x /= 2;     clip.w /= 2;
 	clip.y /= 2;     clip.h /= 2;
 
     } else {
@@ -269,35 +270,35 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dest_x + dest_w <= dst->clip_rect.x ||
 	    dest_y + dest_h <= dst->clip_rect.y) return 1;
 	if (dest_x < dst->clip_rect.x)
-	{ 
+	{
 	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3;
 	    rect.x += (dst->clip_rect.x - dest_x) / 3;
 	    dest_w = rect.w * 3;         dest_x = dst->clip_rect.x; }
 	if (dest_w > dst->clip_rect.x + dst->clip_rect.w - dest_x)
-	{ 
+	{
 	    rect.w = (dst->clip_rect.x + dst->clip_rect.w - dest_x) / 3;
 	    dest_w = rect.w * 3;  }
 	if (dest_y < dst->clip_rect.y)
-	{ 
+	{
 	    rect.h = (dest_h - dst->clip_rect.y - dest_y) / 3;
 	    rect.y += (dst->clip_rect.y - dest_y) / 3;
 	    dest_h = rect.h * 3;         dest_y = dst->clip_rect.y; }
 	if (dest_h > dst->clip_rect.y + dst->clip_rect.h - dest_y)
-	{ 
+	{
 	    rect.h = (dst->clip_rect.y + dst->clip_rect.h - dest_y) / 3;
 	    dest_h = rect.h * 3; }
 	if (!dest_h || !dest_w || !rect.h || !rect.w) return 1;
-	
+
 	if (dstrect) { /*returnvalue*/
 	    dstrect->y = dest_y;
-	    dstrect->x = dest_x; 
+	    dstrect->x = dest_x;
 	    dstrect->w = dest_w;
 	    dstrect->h = dest_h;
 	}
 
-	dstp.b = (Uint8*)dst->pixels + 
+	dstp.b = (Uint8*)dst->pixels +
 	    (dst->pitch*dest_y) + (bpp*dest_x);
-	srcp.b = (Uint8*)src->pixels + 
+	srcp.b = (Uint8*)src->pixels +
 	    (src->pitch*rect.y*2) + (bpp*rect.x*2);
 	endp.b = srcp.b + src->pitch*rect.h*2;
 	srci = src->pitch - (bpp*rect.w*2);
@@ -451,7 +452,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Rect rect;
     SDL_Rect clip;
     const unsigned bpp = src->format->BytesPerPixel;
-    
+
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
 	SDL_SetError("Only works with same format surfaces");
 	return(-1);
@@ -464,7 +465,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	clip.x = clip.y = 0; clip.h = src->h; clip.w = src->w;
 #else
 	clip = src->clip_rect;
-	
+
 	if (rect.x > clip.x + clip.w ||
 	    rect.x + rect.w < clip.x ||
 	    rect.y > clip.y + clip.h ||
@@ -477,9 +478,9 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    rect.h = clip.y + clip.h - rect.y;
 #endif
 	if (! rect.h || !rect.w) return 1;
-	rect.x /= 2;     rect.w /= 2;    
+	rect.x /= 2;     rect.w /= 2;
 	rect.y /= 2;     rect.h /= 2;
-	clip.x /= 2;     clip.w /= 2;    
+	clip.x /= 2;     clip.w /= 2;
 	clip.y /= 2;     clip.h /= 2;
 
     } else {
@@ -501,42 +502,46 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dest_x + dest_w <= dst->clip_rect.x ||
 	    dest_y + dest_h <= dst->clip_rect.y) return 1;
 	if (dest_x < dst->clip_rect.x)
-	{ 
+	{
 	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3;
 	    rect.x += (dst->clip_rect.x - dest_x) / 3;
 	    dest_w = rect.w * 3;         dest_x = dst->clip_rect.x; }
 	if (dest_w > dst->clip_rect.x + dst->clip_rect.w - dest_x)
-	{ 
+	{
 	    rect.w = (dst->clip_rect.x + dst->clip_rect.w - dest_x) / 3;
 	    dest_w = rect.w * 3;  }
 	if (dest_y < dst->clip_rect.y)
-	{ 
+	{
 	    rect.h = (dest_h - dst->clip_rect.y - dest_y) / 3;
 	    rect.y += (dst->clip_rect.y - dest_y) / 3;
 	    dest_h = rect.h * 3;         dest_y = dst->clip_rect.y; }
 	if (dest_h > dst->clip_rect.y + dst->clip_rect.h - dest_y)
-	{ 
+	{
 	    rect.h = (dst->clip_rect.y + dst->clip_rect.h - dest_y) / 3;
 	    dest_h = rect.h * 3; }
 	if (!dest_h || !dest_w || !rect.h || !rect.w) return 1;
-	
+
 	if (dstrect) { /*returnvalue*/
 	    dstrect->y = dest_y;
-	    dstrect->x = dest_x; 
+	    dstrect->x = dest_x;
 	    dstrect->w = dest_w;
 	    dstrect->h = dest_h;
 	}
 
-	dstp = (Uint8*)dst->pixels + 
+	dstp = (Uint8*)dst->pixels +
 	    (dst->pitch*dest_y) + (bpp*dest_x);
-	srcp = (Uint8*)src->pixels + 
+	srcp = (Uint8*)src->pixels +
 	    (src->pitch*rect.y*2) + (bpp*rect.x*2);
 	endp = srcp + src->pitch*rect.h*2;
 	srci = src->pitch - (bpp*rect.w*2);
 	dsti = dst->pitch - (bpp*dest_w);
     }
 
-# if defined __GNUC__ && defined i386
+#if defined __i386_ || defined __x86_64_
+#define ASM_i386
+#endif
+
+# if defined __GNUC__ && defined ASM_i386
 # define ECX __asm__("%ecx")
 # define ESI __asm__("%esi")
 # define EDI __asm__("%edi")
@@ -555,7 +560,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -568,7 +573,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -581,7 +586,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -604,7 +609,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -623,7 +628,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -642,7 +647,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -665,7 +670,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -678,7 +683,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -691,7 +696,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -711,7 +716,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -724,7 +729,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -737,7 +742,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -778,7 +783,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Rect rect;
     SDL_Rect clip;
     const unsigned bpp = src->format->BytesPerPixel;
-    
+
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
 	SDL_SetError("Only works with same format surfaces");
 	return(-1);
@@ -791,7 +796,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	clip.x = clip.y = 0; clip.h = src->h; clip.w = src->w;
 #else
 	clip = src->clip_rect;
-	
+
 	if (rect.x > clip.x + clip.w ||
 	    rect.x + rect.w < clip.x ||
 	    rect.y > clip.y + clip.h ||
@@ -804,9 +809,9 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    rect.h = clip.y + clip.h - rect.y;
 #endif
 	if (! rect.h || !rect.w) return 1;
-	rect.x /= 2;     rect.w /= 2;    
+	rect.x /= 2;     rect.w /= 2;
 	rect.y /= 2;     rect.h /= 2;
-	clip.x /= 2;     clip.w /= 2;    
+	clip.x /= 2;     clip.w /= 2;
 	clip.y /= 2;     clip.h /= 2;
 
     } else {
@@ -828,42 +833,42 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dest_x + dest_w <= dst->clip_rect.x ||
 	    dest_y + dest_h <= dst->clip_rect.y) return 1;
 	if (dest_x < dst->clip_rect.x)
-	{ 
+	{
 	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3;
 	    rect.x += (dst->clip_rect.x - dest_x) / 3;
 	    dest_w = rect.w * 3;         dest_x = dst->clip_rect.x; }
 	if (dest_w > dst->clip_rect.x + dst->clip_rect.w - dest_x)
-	{ 
+	{
 	    rect.w = (dst->clip_rect.x + dst->clip_rect.w - dest_x) / 3;
 	    dest_w = rect.w * 3;  }
 	if (dest_y < dst->clip_rect.y)
-	{ 
+	{
 	    rect.h = (dest_h - dst->clip_rect.y - dest_y) / 3;
 	    rect.y += (dst->clip_rect.y - dest_y) / 3;
 	    dest_h = rect.h * 3;         dest_y = dst->clip_rect.y; }
 	if (dest_h > dst->clip_rect.y + dst->clip_rect.h - dest_y)
-	{ 
+	{
 	    rect.h = (dst->clip_rect.y + dst->clip_rect.h - dest_y) / 3;
 	    dest_h = rect.h * 3; }
 	if (!dest_h || !dest_w || !rect.h || !rect.w) return 1;
-	
+
 	if (dstrect) { /*returnvalue*/
 	    dstrect->y = dest_y;
-	    dstrect->x = dest_x; 
+	    dstrect->x = dest_x;
 	    dstrect->w = dest_w;
 	    dstrect->h = dest_h;
 	}
 
-	dstp = (Uint8*)dst->pixels + 
+	dstp = (Uint8*)dst->pixels +
 	    (dst->pitch*dest_y) + (bpp*dest_x);
-	srcp = (Uint8*)src->pixels + 
+	srcp = (Uint8*)src->pixels +
 	    (src->pitch*rect.y*2) + (bpp*rect.x*2);
 	endp = srcp + src->pitch*rect.h*2;
 	srci = src->pitch - (bpp*rect.w*2);
 	dsti = dst->pitch - (bpp*dest_w);
     }
 
-# if defined __GNUC__ && defined i386
+# if defined __GNUC__ && defined ASM_i386
 # define ECX __asm__("%ecx")
 # define ESI __asm__("%esi")
 # define EDI __asm__("%edi")
@@ -881,13 +886,13 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	register Uint32* srcP ESI = (Uint32*) srcp;
 	do {
 	    register int count ECX = rect.w;
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 	    if (rect.w^(rect.w&255))
 		__asm__ __volatile__ ("prefetchnta 320(%0)\n"
 				      :: "r" (srcP));
 #              endif
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -900,7 +905,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -913,7 +918,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -936,7 +941,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -955,7 +960,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -974,7 +979,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -994,7 +999,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     {
 	register Uint16* dstP EDI = (Uint16*) dstp;
 	register Uint16* srcP ESI = (Uint16*) srcp;
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 	    if (rect.w^(rect.w&255))
 		__asm__ __volatile__ ("prefetchnta 512(%0)\n"
 				      :: "r" (srcP));
@@ -1002,7 +1007,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1015,7 +1020,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1028,7 +1033,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1048,7 +1053,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1061,7 +1066,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1074,7 +1079,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1102,10 +1107,10 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
  * ever possible then we need to make an outer switch of 4x4 = 16 cases
  * given that src-x/src-y can be each even/odd (four combinations)
  * and that src-w/src-h be each even/odd as well (four combinations).
- * Along with four bytedepths, we would come out at 64 copy-loop 
+ * Along with four bytedepths, we would come out at 64 copy-loop
  * definitions but in reality there are 128 copy-loops. Guess why.
  *                                                                       oddX
- *                                                                       only 
+ *                                                                       only
  */
 
 /* Perform a stretch blit between two surfaces of the same format.
@@ -1120,7 +1125,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Rect clip;
     const unsigned bpp = src->format->BytesPerPixel;
     Uint8 oddX = 0;
-    
+
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
 	SDL_SetError("Only works with same format surfaces");
 	return(-1);
@@ -1133,7 +1138,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	clip.x = clip.y = 0; clip.h = src->h; clip.w = src->w;
 #else
 	clip = src->clip_rect;
-	
+
 	if (rect.x > clip.x + clip.w ||
 	    rect.x + rect.w < clip.x ||
 	    rect.y > clip.y + clip.h ||
@@ -1146,16 +1151,16 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    rect.h = clip.y + clip.h - rect.y;
 #endif
 	if (! rect.h || !rect.w) return 1;
-	oddX = rect.x&1; 
-	rect.x /= 2; 
+	oddX = rect.x&1;
+	rect.x /= 2;
 	rect.y /= 2;
 	rect.w /= 2;
-	rect.h /= 2; 
+	rect.h /= 2;
     } else {
 	rect.x = 0;
-	rect.y = 0;               
+	rect.y = 0;
 	rect.w = src->w / 2;
-	rect.h = src->h / 2;      
+	rect.h = src->h / 2;
 	clip = rect;
     }
 
@@ -1170,42 +1175,42 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dest_x + dest_w <= dst->clip_rect.x ||
 	    dest_y + dest_h <= dst->clip_rect.y) return 1;
 	if (dest_x < dst->clip_rect.x)
-	{ 
-	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3; 
+	{
+	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3;
 	    rect.x += (dst->clip_rect.x - dest_x) / 3; oddX = 0;
 	    dest_w = rect.w * 3;               dest_x = dst->clip_rect.x; }
 	if (dest_w > dst->clip_rect.x + dst->clip_rect.w - dest_x)
-	{ 
+	{
 	    rect.w = (dst->clip_rect.x + dst->clip_rect.w - dest_x) / 3;
 	    dest_w = rect.w * 3; }
 	if (dest_y < dst->clip_rect.y)
-	{ 
+	{
 	    rect.h = (dest_h - dst->clip_rect.y - dest_y) / 3;
 	    rect.y += (dst->clip_rect.y - dest_y) / 3;
 	    dest_h = rect.h * 3;               dest_y = dst->clip_rect.y; }
 	if (dest_h > dst->clip_rect.y + dst->clip_rect.h - dest_y)
-	{ 
+	{
 	    rect.h = (dst->clip_rect.y + dst->clip_rect.h - dest_y) / 3;
 	    dest_h = rect.h * 3; }
 	if (!dest_h || !dest_w || !rect.h || !rect.w) return 1;
-	
+
 	if (dstrect) { /*returnvalue*/
 	    dstrect->y = dest_y;
-	    dstrect->x = dest_x; 
+	    dstrect->x = dest_x;
 	    dstrect->w = dest_w;
 	    dstrect->h = dest_h;
 	}
-	
-	dstp = (Uint8*)dst->pixels + 
+
+	dstp = (Uint8*)dst->pixels +
 	    (dst->pitch*dest_y) + (bpp*dest_x);
-	srcp = (Uint8*)src->pixels + 
+	srcp = (Uint8*)src->pixels +
 	    (src->pitch*rect.y*2) + (bpp*(rect.x*2+oddX));
 	endp = srcp + src->pitch*rect.h*2;
 	srci = src->pitch - (bpp*rect.w*2);
 	dsti = dst->pitch - (bpp*dest_w);
     }
 
-# if defined __GNUC__ && defined i386
+# if defined __GNUC__ && defined ASM_i386
 # define ECX __asm__("%ecx")
 # define ESI __asm__("%esi")
 # define EDI __asm__("%edi")
@@ -1226,7 +1231,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1239,7 +1244,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1252,7 +1257,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1275,7 +1280,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1294,7 +1299,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1313,7 +1318,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1336,7 +1341,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1349,7 +1354,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1362,7 +1367,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1382,7 +1387,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1395,7 +1400,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1408,7 +1413,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1434,8 +1439,8 @@ odd_X_even_Y:
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
-		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n" 
+#              if defined __GNUC__ && defined ASM_i386
+		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
 		*dstP++ = *srcP++;
@@ -1447,8 +1452,8 @@ odd_X_even_Y:
 	    dstP += dsti/4;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
-		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n" 
+#              if defined __GNUC__ && defined ASM_i386
+		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
 		*dstP++ = *srcP++;
@@ -1460,7 +1465,7 @@ odd_X_even_Y:
 	    dstP += dsti/4;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1529,7 +1534,7 @@ odd_X_even_Y:
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "lodsw\n" "stosw\n" "stosw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1542,7 +1547,7 @@ odd_X_even_Y:
 	    dstP += dsti/2;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "lodsw\n" "stosw\n" "stosw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1555,7 +1560,7 @@ odd_X_even_Y:
 	    dstP += dsti/2;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "lodsw\n" "stosw\n" "stosw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1575,7 +1580,7 @@ odd_X_even_Y:
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsb\n" "lodsb\n" "stosb\n" "stosb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1588,7 +1593,7 @@ odd_X_even_Y:
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsb\n" "lodsb\n" "stosb\n" "stosb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1601,7 +1606,7 @@ odd_X_even_Y:
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsb\n" "lodsb\n" "stosb\n" "stosb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1629,7 +1634,7 @@ odd_X_even_Y:
  * ever possible then we need to make an outer switch of 4x4 = 16 cases
  * given that src-x/src-y can be each even/odd (four combinations)
  * and that src-w/src-h be each even/odd as well (four combinations).
- * Along with four bytedepths, we would come out at 64 copy-loop 
+ * Along with four bytedepths, we would come out at 64 copy-loop
  * definitions but in reality there are 128 copy-loops. Guess why.
  *                                                                    [[ ALL ]]
  *                                                   unfinished
@@ -1647,7 +1652,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
     SDL_Rect clip;
     const unsigned bpp = src->format->BytesPerPixel;
     Uint8 kind = 0;
-    
+
     if ( src->format->BitsPerPixel != dst->format->BitsPerPixel ) {
 	SDL_SetError("Only works with same format surfaces");
 	return(-1);
@@ -1658,7 +1663,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		   "[%4i+%4i/%4i+%4i]\n",
 		   srcrect->x, srcrect->w,
 		   srcrect->y, srcrect->h,
-		   dst->clip_rect.x, dst->clip_rect.w, 
+		   dst->clip_rect.x, dst->clip_rect.w,
 		   dst->clip_rect.y, dst->clip_rect.h);
 
     /* Verify the blit rectangles */
@@ -1668,7 +1673,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	clip.x = clip.y = 0; clip.h = src->h; clip.w = src->w;
 #else
 	clip = src->clip_rect;
-	
+
 	if (rect.x > clip.x + clip.w ||
 	    rect.x + rect.w < clip.x ||
 	    rect.y > clip.y + clip.h ||
@@ -1684,12 +1689,12 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	kind |= rect.x&1; rect.x /= 2; kind<<=1;
 	kind |= rect.y&1; rect.y /= 2; kind<<=1;
 	kind |= rect.w&1; rect.w /= 2; kind<<=1;
-	kind |= rect.h&1; rect.h /= 2; 
+	kind |= rect.h&1; rect.h /= 2;
     } else {
 	rect.x = 0;
 	rect.y = 0;               kind |= src->w&1; kind<<=1;
 	rect.w = src->w / 2;      kind |= src->h&1;
-	rect.h = src->h / 2;      
+	rect.h = src->h / 2;
 	clip = rect;
     }
 
@@ -1748,32 +1753,32 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dest_x + dest_w <= dst->clip_rect.x ||
 	    dest_y + dest_h <= dst->clip_rect.y) return 1;
 	if (dest_x < dst->clip_rect.x)
-	{ 
-	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3; 
+	{
+	    rect.w = (dest_w - dst->clip_rect.x - dest_x) / 3;
 	    rect.x += (dst->clip_rect.x - dest_x) / 3;
-	    dest_w = rect.w * 3;               dest_x = dst->clip_rect.x; 
+	    dest_w = rect.w * 3;               dest_x = dst->clip_rect.x;
 	    kind &= _X|_Y|_H; }
 	if (dest_w > dst->clip_rect.x + dst->clip_rect.w - dest_x)
-	{ 
+	{
 	    rect.w = (dst->clip_rect.x + dst->clip_rect.w - dest_x) / 3;
 	    dest_w = rect.w * 3;
 	    kind &= _X|_Y|_H; }
 	if (dest_y < dst->clip_rect.y)
-	{ 
+	{
 	    rect.h = (dest_h - dst->clip_rect.y - dest_y) / 3;
 	    rect.y += (dst->clip_rect.y - dest_y) / 3;
-	    dest_h = rect.h * 3;               dest_y = dst->clip_rect.y; 
+	    dest_h = rect.h * 3;               dest_y = dst->clip_rect.y;
 	    kind &= _X|_Y|_W; }
 	if (dest_h > dst->clip_rect.y + dst->clip_rect.h - dest_y)
-	{ 
+	{
 	    rect.h = (dst->clip_rect.y + dst->clip_rect.h - dest_y) / 3;
-	    dest_h = rect.h * 3; 
+	    dest_h = rect.h * 3;
 	    kind &= _X|_Y|_W; }
 	if (!dest_h || !dest_w || !rect.h || !rect.w) return 1;
-	
+
 	if (dstrect) { /*returnvalue*/
 	    dstrect->y = dest_y;
-	    dstrect->x = dest_x; 
+	    dstrect->x = dest_x;
 	    dstrect->w = dest_w;
 	    dstrect->h = dest_h;
 	}
@@ -1785,16 +1790,16 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 			  rect.y,(kind&_Y)?'>':'.',rect.h,(kind&_H)?'>':'.',
 			  dest_x,dest_w,	     dest_y,dest_h);
 
-	dstp = (Uint8*)dst->pixels + 
+	dstp = (Uint8*)dst->pixels +
 	    (dst->pitch*dest_y) + (bpp*dest_x);
-	srcp = (Uint8*)src->pixels + 
+	srcp = (Uint8*)src->pixels +
 	    (src->pitch*rect.y*2) + (bpp*rect.x*2);
 	endp = srcp + src->pitch*rect.h*2;
 	srci = src->pitch - (bpp*rect.w*2);
 	dsti = dst->pitch - (bpp*dest_w);
     }
 
-# if defined __GNUC__ && defined i386
+# if defined __GNUC__ && defined ASM_i386
 # define ECX __asm__("%ecx")
 # define ESI __asm__("%esi")
 # define EDI __asm__("%edi")
@@ -1815,7 +1820,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1828,7 +1833,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1841,7 +1846,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/4;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsl\n" "stosl\n" "stosl\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1864,7 +1869,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1883,7 +1888,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1902,7 +1907,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 		dstP[0] = srcP[0];
 		dstP[1] = srcP[1];
 		dstP[2] = srcP[2];
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "movsl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1925,7 +1930,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1938,7 +1943,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1951,7 +1956,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstP += dsti/2;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsw\n" "stosw\n" "stosw\n" "movsw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1971,7 +1976,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1984,7 +1989,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -1997,7 +2002,7 @@ int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("lodsb\n" "stosb\n" "stosb\n" "movsb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2023,8 +2028,8 @@ odd_X_even_Y:
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
-		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n" 
+#              if defined __GNUC__ && defined ASM_i386
+		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
 		*dstP++ = *srcP++;
@@ -2036,8 +2041,8 @@ odd_X_even_Y:
 	    dstP += dsti/4;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
-		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n" 
+#              if defined __GNUC__ && defined ASM_i386
+		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
 		*dstP++ = *srcP++;
@@ -2049,7 +2054,7 @@ odd_X_even_Y:
 	    dstP += dsti/4;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsl\n" "lodsl\n" "stosl\n" "stosl\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2118,7 +2123,7 @@ odd_X_even_Y:
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "lodsw\n" "stosw\n" "stosw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2131,7 +2136,7 @@ odd_X_even_Y:
 	    dstP += dsti/2;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "lodsw\n" "stosw\n" "stosw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2144,7 +2149,7 @@ odd_X_even_Y:
 	    dstP += dsti/2;                  /* it really a "ADD dsti, dstP" */
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsw\n" "lodsw\n" "stosw\n" "stosw\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2164,7 +2169,7 @@ odd_X_even_Y:
 	do {
 	    register int count ECX = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsb\n" "lodsb\n" "stosb\n" "stosb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2177,7 +2182,7 @@ odd_X_even_Y:
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsb\n" "lodsb\n" "stosb\n" "stosb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else
@@ -2190,7 +2195,7 @@ odd_X_even_Y:
 	    dstp += dsti;
 	    count = rect.w;
 	    do {
-#              if defined __GNUC__ && defined i386
+#              if defined __GNUC__ && defined ASM_i386
 		__asm__ __volatile__ ("movsb\n" "lodsb\n" "stosb\n" "stosb\n"
 				      :: "S" (srcP), "D" (dstP) : "%eax");
 #              else

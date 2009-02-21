@@ -21,6 +21,14 @@
 
 /* these will fill the target surface completely */
 
+/****************************************************
+ *
+ * WARNING: these routines are not used anymore.
+ * (they will not be part of the normal library)
+ *
+ ****************************************************
+ */
+
 #ifdef SAVE_RCSID
 static char rcsid =
  "@(#) $Id: sdstretch.c $";
@@ -28,13 +36,12 @@ static char rcsid =
 
 #include "SDL/SDL_error.h"
 #include "SDL/SDL_video.h"
-#include "SDL/SDL_blit.h"
 #include "SDL_stretch.h"
 #include "SDL_stretchcode.h"
+#include "SDL_stretchasm.h"
+#include "SDL_stretchtest.hh"
 
 #define PRERUN 0
-
-
 
 
 /* Perform a stretch blit between two surfaces of the same format.
@@ -45,12 +52,10 @@ int SDL_StretchSurfaceBlitTo(SDL_Surface *src, SDL_Rect *srcrect,
 {
 	int i = 0;
 	int src_row, dst_row;
-	Uint8 *srcp = NULL;
-	Uint8 *dstp;
 	SDL_Rect full_src;
-	SDL_Rect full_dst;
-#     if defined(USE_ASM_STRETCH) 
-	char* code = 0;
+	/* SDL_Rect full_dst; */
+#     if defined SDL_STRETCH_USE_ASM
+	unsigned char* code = 0;
 #     endif
 	const int bpp = dst->format->BytesPerPixel;
 	auto int dest_w = srcrect->w * dst->w / src->w;
@@ -77,24 +82,24 @@ int SDL_StretchSurfaceBlitTo(SDL_Surface *src, SDL_Rect *srcrect,
 		srcrect = &full_src;
 	}
 
-#      ifdef USE_ASM_STRETCH
+#      ifdef SDL_STRETCH_USE_ASM
 	/* Write the opcodes for this stretch */
 	/* if ( (bpp != 3) */
-	code = SDL_SetStretchCode(srcrect->w, dest_w, bpp);
+	code = SDL_SetRowStretchCode(srcrect->w, dest_w, bpp);
 #      endif
 
 
 	if (PRERUN)   /* let the compiler do the dead-code removal */
 	{   /* Pre-Run the stretch blit (the invisible lines) */
-	    src_row = 0; 
+	    src_row = 0;
 	    dst_row = 0;
 	    while (1)
 	    {
 		if (src_row >= srcrect->y) break;
-		dst_row++; i += src->h;                             
-		if (i < dst->h) continue;                    
+		dst_row++; i += src->h;
+		if (i < dst->h) continue;
 		do { i -= dst->h; src_row++; } while (i >= dst->h);
-	    }   
+	    }
 	}else
 	{   /* or compute the resulting dst_row and i-fraction directly: */
 	    src_row = srcrect->y;
@@ -104,41 +109,31 @@ int SDL_StretchSurfaceBlitTo(SDL_Surface *src, SDL_Rect *srcrect,
 	}
 
 	if (dstrect) { /*returnvalue*/
-	    dstrect->y = dst_row; 
-	    dstrect->x = dest_x; 
-	    dstrect->w = dest_w; 
+	    dstrect->y = dst_row;
+	    dstrect->x = dest_x;
+	    dstrect->w = dest_w;
 	}
 
 
 	while (src_row < srcrect->y + srcrect->h)
 	{
+            Uint8 *srcp, *dstp;
 	    srcp = (Uint8 *)src->pixels + (src_row*src->pitch)
 		+ (srcrect->x*bpp);
 	draw:
 	    dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch)
 		+ (dest_x*bpp);
-#          ifdef USE_ASM_STRETCH
+#          ifdef SDL_STRETCH_USE_ASM
 	    if (code)
 	    {
-#	       if defined __GNUC__
-		__asm__ __volatile__ ("call SDL_TheStretchCode"
-				      :: "S" (dstp), "D" (srcp) : "%eax");
-#              elif defined WIN32
-		__asm { 
-		    push edi ;
-		    push esi ;
-		    mov edi, dstp ;
-		    mov esi, srcp ;
-		    call dword ptr code ;
-		    pop esi ;
-		    pop edi ;
-		}
+#              if defined SDL_STRETCH_CALL
+	       SDL_STRETCH_CALL(code, srcp, dstp);
 #              else
-#              error Need inline assembly for this compiler
+	       SDL_RunRowStretchCode(code, srcp, dstp);
 #              endif
 	    }else
-#          endif /*USE_ASM_STRETCH*/
-	    { 
+#          endif /*USE_ASM*/
+	    {
 		switch (bpp) {
 		case 1:
 		    SDL_StretchRow1(srcp, srcrect->w, dstp, dest_w);
@@ -157,7 +152,7 @@ int SDL_StretchSurfaceBlitTo(SDL_Surface *src, SDL_Rect *srcrect,
 		}
 	    }
 
-	    dst_row++; i += src->h;                             
+	    dst_row++; i += src->h;
 	    if (dst_row == dst->h) break; /*oops*/
 	    if (i < dst->h) goto draw; /* draw the line again */
 	    do { i -= dst->h; src_row++; } while (i >= dst->h);
@@ -172,13 +167,16 @@ int SDL_StretchSurfaceBlitTo(SDL_Surface *src, SDL_Rect *srcrect,
 
 #define OPTIMIZED 1
 
-static int blit(int dst_row, int src_row, 
+#if defined SDL_STRETCH_USE_ASM && defined OPTIMIZED
+static int SDL_StretchFastBlitTo(
+                unsigned char* code,
+                int dst_row, int src_row,
 		SDL_Surface* dst, SDL_Surface* src,
 		SDL_Rect* rect, SDL_Rect* clip, int dest_x, int i)
 {
     const int bpp = src->format->BytesPerPixel;
     Uint8 *srcp = (Uint8 *)src->pixels + (src_row*src->pitch) + (rect->x*bpp);
-    Uint8 *srcE = (Uint8 *)src->pixels + ((rect->y + rect->h) 
+    Uint8 *srcE = (Uint8 *)src->pixels + ((rect->y + rect->h)
 					  *src->pitch) + (rect->x*bpp);
     Uint8 *dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch) + (dest_x*bpp);
 //    Uint8* dstE = (Uint8 *)dst->pixels + (dst->h*dst->pitch) + (dest_x*bpp);
@@ -186,30 +184,19 @@ static int blit(int dst_row, int src_row,
 	    while (srcp < srcE)
 	    {
 	    draws:
-#	       if defined __GNUC__
-		__asm__ __volatile__ ("call SDL_TheStretchCode"
-				      :: "S" (dstp), "D" (srcp) : "%eax");
-#              elif defined WIN32
-		__asm { 
-		    push edi ;
-		    push esi ;
-		    mov edi, dstp ;
-		    mov esi, srcp ;
-		    call dword ptr code ;
-		    pop esi ;
-		    pop edi ;
-		}
+#              if defined SDL_STRETCH_CALL
+	       SDL_STRETCH_CALL(code, srcp, dstp)
 #              else
-#              error Need inline assembly for this compiler
+	       SDL_RunRowStretchCode(code, srcp, dstp);
 #              endif
-		dstp += dst->pitch; i += clip->h;                             
+		dstp += dst->pitch; i += clip->h;
 		// if (dstp == dstE) break; /*oops*/
 		if (i < dst->h) goto draws; /* draw the line again */
 		do { i -= dst->h; srcp += src->pitch; } while (i >= dst->h);
 	    }
 	    return dst_row;
 }
-
+#endif
 
 #define DEBUGSIZES 0
 #define	DEBUGSIZES_ (src->h != dst->h)
@@ -223,12 +210,10 @@ int SDL_StretchSurfaceRectTo(SDL_Surface *src, SDL_Rect *srcrect,
 	int i = 0;
 	int src_row, dst_row;
 	int dest_x, dest_w;
-	Uint8 *srcp = NULL;
-	Uint8 *dstp;
 	SDL_Rect rect;
 	SDL_Rect clip;
-#     if defined(USE_ASM_STRETCH) 
-	char* code = 0;
+#     if defined SDL_STRETCH_USE_ASM
+	unsigned char* code = 0;
 #     endif
 	const int bpp = src->format->BytesPerPixel;
 
@@ -266,7 +251,7 @@ int SDL_StretchSurfaceRectTo(SDL_Surface *src, SDL_Rect *srcrect,
 	}
 
 	if (DEBUGSIZES)
-	    fprintf (stderr, "[%i/%i][%i+%i/%i+%i][%i+%i/%i+%i]\n", 
+	    fprintf (stderr, "[%i/%i][%i+%i/%i+%i][%i+%i/%i+%i]\n",
 		     src->w,src->h,
 		     clip.x,clip.w,clip.y,clip.h,
 		     rect.x,rect.w,rect.y,rect.h);
@@ -274,23 +259,23 @@ int SDL_StretchSurfaceRectTo(SDL_Surface *src, SDL_Rect *srcrect,
 	dest_w = rect.w * dst->w / clip.w;
 	dest_x = (rect.x-clip.x) * dst->w / clip.w;
 
-#      ifdef USE_ASM_STRETCH
+#      ifdef SDL_STRETCH_USE_ASM
 	/* Write the opcodes for this stretch */
 	/* if ( (bpp != 3) */
-	code = SDL_SetStretchCode(rect.w, dest_w, bpp);
+	code = SDL_SetRowStretchCode(rect.w, dest_w, bpp);
 #      endif
 
 	if (PRERUN)   /* let the compiler do the dead-code removal */
 	{   /* Pre-Run the stretch blit (the invisible lines) */
-	    src_row = clip.y; 
+	    src_row = clip.y;
 	    dst_row = 0;
 	    while (1)
 	    {
 		if (src_row >= rect.y) break;
-		dst_row++; i += clip.h;                             
-		if (i < dst->h) continue;                    
+		dst_row++; i += clip.h;
+		if (i < dst->h) continue;
 		do { i -= dst->h; src_row++; } while (i >= dst->h);
-	    }   
+	    }
 	}else
 	{   /* or compute the resulting dst_row and i-fraction directly: */
 	    src_row = rect.y - clip.y;
@@ -299,66 +284,56 @@ int SDL_StretchSurfaceRectTo(SDL_Surface *src, SDL_Rect *srcrect,
 	    if (i < 0) i += dst->h;
 	}
 
-	if (dstrect) { 
-	    dstrect->y = dst_row; 
-	    dstrect->x = dest_x; 
-	    dstrect->w = dest_w; 
+	if (dstrect) {
+	    dstrect->y = dst_row;
+	    dstrect->x = dest_x;
+	    dstrect->w = dest_w;
 	}
 
 	if (DEBUGSIZES)
 	    fprintf (stderr, "[%i/%i][%i+%i/%i+%i][%i+%i/%i+%i]"
-		     " -> [%i/%i][%i+%i/%i+?]\n", 
+		     " -> [%i/%i][%i+%i/%i+?]\n",
 		     src->w,src->h,
 		     clip.x,clip.w,clip.y,clip.h,
 		     rect.x,rect.w,rect.y,rect.h,
 		     dst->w,dst->h,
 		     dest_x,dest_w,dst_row);
 
-#ifdef USE_ASM_STRETCH
+#      ifdef SDL_STRETCH_USE_ASM
 	if (code)
 	{
 #         ifdef OPTIMIZED
-	    dst_row = blit(dst_row, src_row, dst, src, &rect, &clip, dest_x,i);
+	    dst_row = SDL_StretchFastBlitTo(code, dst_row, src_row, dst, src, &rect, &clip, dest_x,i);
 #         else
 	    while (src_row < rect.y + rect.h)
 	    {
-		srcp = (Uint8 *)src->pixels + (src_row*src->pitch) 
+                Uint8 *srcp, *dstp;
+		srcp = (Uint8 *)src->pixels + (src_row*src->pitch)
 		    + (rect.x*bpp);
 	    draws:
-		dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch) 
+		dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch)
 		    + (dest_x*bpp);
-
-#	       if defined __GNUC__
-		__asm__ __volatile__ ("call SDL_TheStretchCode"
-				      :: "S" (dstp), "D" (srcp) : "%eax");
-#              elif defined WIN32
-		__asm { 
-		    push edi ;
-		    push esi ;
-		    mov edi, dstp ;
-		    mov esi, srcp ;
-		    call dword ptr code ;
-		    pop esi ;
-		    pop edi ;
-		}
-#              else
-#              error Need inline assembly for this compiler
-#              endif
-		dst_row++; i += clip.h;                             
+#               ifdef SDL_STRETCH_CALL
+                SDL_STRETCH_CALL(code, srcp, dstp);
+#               else
+                SDL_RunRowStretchCode(code, srcp, dstp);
+#               endif
+		dst_row++; i += clip.h;
 		if (dst_row == dst->h) break; /*oops*/
 		if (i < dst->h) goto draws; /* draw the line again */
 		do { i -= dst->h; src_row++; } while (i >= dst->h);
 	    }
 #         endif
 	}else
-#          endif /*USE_ASM_STRETCH*/
+#      endif /*USE_ASM*/
 	{
 	    while (src_row < rect.y + rect.h)
 	    {
-		srcp = (Uint8 *)src->pixels + (src_row*src->pitch) 
+                Uint8 *srcp, *dstp;
+		srcp = (Uint8 *)src->pixels + (src_row*src->pitch)
 		    + (rect.x*bpp);
 	    draw:
-		dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch) 
+		dstp = (Uint8 *)dst->pixels + (dst_row*dst->pitch)
 		    + (dest_x*bpp);
 
 		if (DEBUGSIZES) fprintf(stderr, ".");
@@ -379,7 +354,7 @@ int SDL_StretchSurfaceRectTo(SDL_Surface *src, SDL_Rect *srcrect,
 		    break;
 		}
 
-		dst_row++; i += clip.h;                             
+		dst_row++; i += clip.h;
 		if (dst_row == dst->h) break; /*oops*/
 		if (i < dst->h) goto draw; /* draw the line again */
 		do { i -= dst->h; src_row++; } while (i >= dst->h);

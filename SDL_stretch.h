@@ -58,10 +58,15 @@ extern int SDL_StretchSurfaceBlit(SDL_Surface *src, SDL_Rect *srcrect,
 /**
  *  This function will stretch to 150%. This is not only a fast function
  *  but it is also safe to call from multiple threads. If the srcrect
- *  is given then only that rect is copied. Otherwise the full src 
+ *  is given then only that rect is copied. Otherwise the full src
  *  surface is copied to the full dst surface. The dstrect is ignored.
  */
 extern int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
 				 SDL_Surface *dst, SDL_Rect *dstrect);
+
+/**
+ * return some informative information.
+ */
+extern char* SDL_StretchInfo(void);
 
 #endif

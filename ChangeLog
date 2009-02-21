@@ -1,4 +1,17 @@
-- adding ChangeLog as well
-- updating to latest make-doc.py
-	
-	
+2009-02-21  guidod  <guidod@gmx.de>
+    * adding parallax2 demo with SOFTSTRETCH changes.
+
+2009-02-21  guidod  <guidod@gmx.de>
+    * due to the API change, the version number is bumped up to 0.3.0
+	* SDL_stretchcode.h: replace data-export SDL_TheRowStretchCode with
+	   function-export SDL_GetRowStretchCode. The reason is that the AMD64 Linux
+	   platform will compile with NX datasegments by default. There is only one
+	   chance in an allocated memalign/mprotect segment that will be used.
+	* sdlstretchcode.c: rephrase to support HAVE_X86_64 in parallel with HAVE_386
+	* doc/make-doc.py: use BEL instead of hatch to flag "*/" sequences
+	* configure.ac: use only "python" in search of the tooling
+
+2003-12-07 <guidod@pc3>
+	- adding ChangeLog as well
+	- updating to latest make-doc.py
+
