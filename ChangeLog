@@ -1,3 +1,13 @@
+2009-05-21  guidod  <guidod@gmx.de>
+    * moving *.c/*.h/*.pc into new src/ subdirectory
+    * adding extern C clauses to the header files.
+    * parallax2.c: adjust example to assert tiles_bmp with
+       an alternative load from "../../src/parallax2.bmp"
+    * parallax2.c: also invert order of ifndef SOFTBLIT near eventloop
+	* src/SDL_stretch.h: insert DECLSPEC to accomodate win32-builds
+	* thanks to Vincent Richomme for the test/build/patch
+	    of SDL_stretch for win32/wince ARMV4 platform
+
 2009-02-21  guidod  <guidod@gmx.de>
     * adding parallax2 demo with SOFTSTRETCH changes.
 

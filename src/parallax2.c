@@ -32,6 +32,7 @@
 #include "SDL.h"
 
 #ifdef SOFTSTRETCH
+#include <assert.h>
 #include "SDL_stretch.h"
 void draw_tile(SDL_Surface *screen, SDL_Surface *tiles, int x, int y, char tile); /* optional */
 #endif
@@ -225,6 +226,8 @@ int main(int argc, char* argv[])
 
 #     ifdef SOFTSTRETCH
 	tiles_bmp = SDL_LoadBMP("parallax2.bmp");
+	if (tiles_bmp == NULL) tiles_bmp = SDL_LoadBMP("../../src/parallax2.bmp");
+        assert(tiles_bmp != NULL);
 #     else
         tiles_bmp = SDL_LoadBMP("tiles.bmp");
 #     endif
@@ -247,19 +250,17 @@ int main(int argc, char* argv[])
 
 	while (SDL_PollEvent(&event) >= 0)
 	{
-#             ifndef SOFTSTRETCH
+#             ifdef SOFTSTRETCH
 		/* Click to exit */
-		if (event.type == SDL_MOUSEBUTTONDOWN)
-			break;
-#             else
-		/* Click to exit */
-                if (event.type == SDL_MOUSEBUTTONDOWN)
-                        break;
-                else if (event.type == SDL_QUIT)
+                if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_QUIT)
                         break;
                 else if (event.type == SDL_VIDEORESIZE)
                     realscreen = SDL_SetVideoMode(event.resize.w, event.resize.h,
                             realscreen->format->BitsPerPixel, flags | SDL_RESIZABLE);
+#             else
+                /* Click to exit */
+                if (event.type == SDL_MOUSEBUTTONDOWN)
+                        break;
 #             endif
 		/* calculate time since last update */
 		tick2 = SDL_GetTicks();

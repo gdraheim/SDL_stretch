@@ -27,9 +27,16 @@
 #include <SDL/SDL_video.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern int SDL_StretchSurfaceRectTo(SDL_Surface *src, SDL_Rect *srcrect,
                                     SDL_Surface *dst, SDL_Rect *dstrect);
 extern int SDL_StretchSurfaceBlitTo(SDL_Surface *src, SDL_Rect *srcrect,
                                     SDL_Surface *dst, SDL_Rect *dstrect);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

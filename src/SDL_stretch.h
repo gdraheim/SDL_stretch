@@ -27,6 +27,14 @@
 #include <SDL/SDL_video.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef DECLSPEC
+#define DECLSPEC
+#endif
+
 /** Perform a stretch blit between two surfaces of the same format.
  *  NOTE:  This function is not safe to call from multiple threads!
  *
@@ -40,8 +48,9 @@
  * a larger src surface with an associated viewframe, and the srcrect
  * argument needs not be recomputed.
  */
-extern int SDL_StretchSurfaceRect(SDL_Surface *src, SDL_Rect *srcrect,
-				  SDL_Surface *dst, SDL_Rect *dstrect);
+extern DECLSPEC int
+SDL_StretchSurfaceRect(SDL_Surface *src, SDL_Rect *srcrect,
+			  SDL_Surface *dst, SDL_Rect *dstrect);
 /** Perform a stretch blit between two surfaces of the same format.
  *  NOTE:  This function is not safe to call from multiple threads!
  *
@@ -53,20 +62,27 @@ extern int SDL_StretchSurfaceRect(SDL_Surface *src, SDL_Rect *srcrect,
  * Remember that this is the inverse meaning, the main SDL lib will
  * ignore the srcrect and only watch for the dstrect if any.
  */
-extern int SDL_StretchSurfaceBlit(SDL_Surface *src, SDL_Rect *srcrect,
-				  SDL_Surface *dst, SDL_Rect *dstrect);
+extern DECLSPEC int
+SDL_StretchSurfaceBlit(SDL_Surface *src, SDL_Rect *srcrect,
+			  SDL_Surface *dst, SDL_Rect *dstrect);
 /**
  *  This function will stretch to 150%. This is not only a fast function
  *  but it is also safe to call from multiple threads. If the srcrect
  *  is given then only that rect is copied. Otherwise the full src
  *  surface is copied to the full dst surface. The dstrect is ignored.
  */
-extern int SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
-				 SDL_Surface *dst, SDL_Rect *dstrect);
+extern DECLSPEC int
+SDL_StretchSurface_23(SDL_Surface *src, SDL_Rect *srcrect,
+			 SDL_Surface *dst, SDL_Rect *dstrect);
 
 /**
  * return some informative information.
  */
-extern char* SDL_StretchInfo(void);
+extern DECLSPEC char*
+SDL_StretchInfo(void);
 
+
+#ifdef __cplusplus
+}
+#endif
 #endif

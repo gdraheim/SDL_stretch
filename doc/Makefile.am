@@ -9,8 +9,8 @@ $(PACKAGE).spec : @top_srcdir@/$(PACKAGE).spec
 
 $(PACKAGE)1.html : $(PACKAGE)1.xml
 $(PACKAGE)1.xml : $(PACKAGE).spec @srcdir@/Makefile.am @srcdir@/make-doc.py \
-                   $(srcdir)/make-doc.py @top_srcdir@/*.h
-	- @PYTHON@ $(srcdir)/make-doc.py @top_srcdir@/*.h suffix=1 
+                   $(srcdir)/make-doc.py @top_srcdir@/src/*.h
+	- @PYTHON@ $(srcdir)/make-doc.py @top_srcdir@/src/*.h suffix=1 
 	- test -f $(PACKAGE)3.docbook && mv $(PACKAGE)3.docbook $@ ; test -s $@
 	- test -f $(PACKAGE)1.docbook && mv $(PACKAGE)1.docbook $@ ; test -s $@
 

@@ -22,6 +22,10 @@
 #ifndef _SDL_STRETCHCODE_IMPLEMENTATION_
 #define _SDL_STRETCHCODE_IMPLEMENTATION_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* development header - do not use */
 
 #define SDL_STRETCHCODE_BUFFERSIZE 8192
@@ -93,4 +97,7 @@ void SDL_StretchRow4(Uint32 *src, int src_w, Uint32 *dst, int dst_w);
  */
 extern char* SDL_StretchRowInfo(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
